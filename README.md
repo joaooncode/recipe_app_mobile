@@ -1,50 +1,173 @@
-# Welcome to your Expo app 👋
+# 🍳 App de Receitas
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Um aplicativo móvel de receitas desenvolvido com React Native e Expo, que permite aos usuários descobrir, pesquisar e salvar receitas deliciosas de todo o mundo.
 
-## Get started
+## ✨ Funcionalidades
 
-1. Install dependencies
+- **Descoberta de Receitas**: Explore receitas aleatórias e populares
+- **Pesquisa Avançada**: Busque receitas por nome, categoria ou ingrediente
+- **Filtros por Categoria**: Navegue por diferentes tipos de comida (Vegetariana, Sobremesa, etc.)
+- **Detalhes Completos**: Visualize ingredientes, instruções e informações nutricionais
+- **Favoritos**: Salve suas receitas preferidas para acesso rápido
+- **Interface Moderna**: Design responsivo e intuitivo com TailwindCSS
+- **Autenticação**: Sistema de login e registro com Clerk
+
+## 🛠️ Tecnologias Utilizadas
+
+- **React Native** - Framework para desenvolvimento móvel
+- **Expo** - Plataforma para desenvolvimento React Native
+- **TypeScript** - Tipagem estática para JavaScript
+- **Expo Router** - Roteamento baseado em arquivos
+- **TailwindCSS** - Framework CSS utilitário
+- **NativeWind** - TailwindCSS para React Native
+- **Clerk** - Autenticação e gerenciamento de usuários
+- **TheMealDB API** - API para dados de receitas
+
+## 📱 Pré-requisitos
+
+Antes de começar, certifique-se de ter instalado:
+
+- [Node.js](https://nodejs.org/) (versão 18 ou superior)
+- [npm](https://www.npmjs.com/) ou [yarn](https://yarnpkg.com/)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+- [Expo Go](https://expo.dev/go) (para testar no dispositivo móvel)
+
+## 🚀 Como Executar
+
+1. **Clone o repositório**
+
+   ```bash
+   git clone <url-do-repositorio>
+   cd recipe-app/mobile
+   ```
+
+2. **Instale as dependências**
 
    ```bash
    npm install
    ```
 
-2. Start the app
+3. **Inicie o servidor de desenvolvimento**
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+4. **Execute no dispositivo**
+   - **Android**: Pressione `a` ou escaneie o QR code com o Expo Go
+   - **iOS**: Pressione `i` ou escaneie o QR code com a câmera do iPhone
+   - **Web**: Pressione `w` para abrir no navegador
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 📁 Estrutura do Projeto
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+```
+mobile/
+├── app/                    # Páginas da aplicação (Expo Router)
+│   ├── (auth)/            # Telas de autenticação
+│   │   ├── sign-in.tsx
+│   │   ├── sign-up.tsx
+│   │   └── verify-email.tsx
+│   ├── (tabs)/            # Telas principais com navegação por abas
+│   │   ├── index.tsx      # Tela inicial
+│   │   ├── search.jsx     # Tela de pesquisa
+│   │   └── favorites.tsx  # Tela de favoritos
+│   └── _layout.tsx        # Layout raiz
+├── components/            # Componentes reutilizáveis
+│   ├── category-filter.tsx
+│   ├── recipe-card.tsx
+│   └── SafeScreen.tsx
+├── services/              # Serviços e APIs
+│   └── meal-api.ts        # Integração com TheMealDB API
+├── assets/                # Recursos estáticos
+│   ├── images/           # Imagens
+│   └── styles/           # Estilos específicos
+└── constants/            # Constantes da aplicação
+    └── color.ts          # Paleta de cores
+```
 
-## Get a fresh project
-
-When you're ready, run:
+## 🔧 Scripts Disponíveis
 
 ```bash
+# Iniciar o servidor de desenvolvimento
+npm start
+
+# Executar no Android
+npm run android
+
+# Executar no iOS
+npm run ios
+
+# Executar na Web
+npm run web
+
+# Executar linter
+npm run lint
+
+# Resetar projeto (cuidado!)
 npm run reset-project
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🌐 API Externa
 
-## Learn more
+Este aplicativo utiliza a [TheMealDB API](https://www.themealdb.com/api.php) para obter dados de receitas. A API oferece:
 
-To learn more about developing your project with Expo, look at the following resources:
+- Mais de 1000 receitas de diferentes países
+- Informações detalhadas sobre ingredientes e instruções
+- Categorias e filtros por ingredientes
+- Receitas aleatórias para descoberta
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🎨 Design System
 
-## Join the community
+O aplicativo utiliza uma paleta de cores consistente definida em `constants/color.ts`:
 
-Join our community of developers creating universal apps.
+- **Primária**: Tons de laranja e vermelho para elementos principais
+- **Secundária**: Tons de verde para elementos de apoio
+- **Neutra**: Cinzas para textos e backgrounds
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🔐 Autenticação
+
+O sistema de autenticação é gerenciado pelo Clerk, oferecendo:
+
+- Login e registro de usuários
+- Verificação de email
+- Recuperação de senha
+- Sessões seguras
+
+## 📱 Compatibilidade
+
+- **Android**: 6.0+ (API level 23+)
+- **iOS**: 11.0+
+- **Web**: Navegadores modernos
+
+## 🤝 Contribuindo
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+
+## 📞 Suporte
+
+Se você encontrar algum problema ou tiver dúvidas:
+
+1. Verifique a [documentação do Expo](https://docs.expo.dev/)
+2. Consulte os [issues do GitHub](https://github.com/expo/expo/issues)
+3. Entre na [comunidade Discord do Expo](https://chat.expo.dev)
+
+## 🎯 Próximos Passos
+
+- [ ] Implementar sistema de avaliações
+- [ ] Adicionar modo offline
+- [ ] Integrar com redes sociais
+- [ ] Implementar notificações push
+- [ ] Adicionar lista de compras
+- [ ] Sistema de comentários e reviews
+
+---
+
+Desenvolvido com ❤️ usando React Native e Expo
