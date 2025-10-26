@@ -1,98 +1,272 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
-
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
-
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  FlatList,
+  RefreshControl,
+} from "react-native";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import { mealApiService } from "@/services/meal-api";
+import { homeStyles } from "@/assets/styles/home.styles";
+import { Image } from "expo-image";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "@/constants/color";
+import CategoryFilter from "@/components/category-filter";
+import RecipeCard from "@/components/recipe-card";
+// Type definitions
+interface Category {
+  id: number;
+  name: string;
+  image: string;
+  description: string;
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+interface Meal {
+  idMeal: string;
+  strMeal: string;
+  strMealThumb: string;
+  strCategory: string;
+  strArea: string;
+  strInstructions: string;
+  [key: string]: any; // For dynamic ingredient/measure properties
+}
+
+interface TransformedMeal {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+  cookTime: string;
+  servings: number;
+  category: string;
+  area: string;
+  ingredients: string[];
+  instructions: string[];
+  originalData: Meal;
+}
+const HomeScreen = () => {
+  const router = useRouter();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [recipes, setRecipes] = useState<TransformedMeal[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [featureRecipe, setFeatureRecipe] = useState<TransformedMeal | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+
+      const [categories, featureMeals] = await Promise.all([
+        mealApiService.getCategories(),
+        mealApiService.getRandomMeals(12),
+      ]);
+
+      const transformedCategories = categories.map((c: any, i: number) => ({
+        id: i + 1,
+        name: c.strCategory,
+        image: c.strCategoryThumb,
+        description: c.strCategoryDescription,
+      }));
+
+      setCategories(transformedCategories);
+      if (!selectedCategory) {
+        const firstCategory = transformedCategories[0].name;
+        setSelectedCategory(firstCategory);
+        // Load recipes from the first category instead of random meals
+        await loadCategoryData(firstCategory);
+      }
+
+      // Fix: featureMeals is already an array, so we can map over it
+      const transformedFeaturedMeals = featureMeals
+        .map((meal: Meal) => mealApiService.transformMealData(meal))
+        .filter((meal: TransformedMeal | null) => meal !== null);
+
+      // Set the first featured meal as the feature recipe
+      if (transformedFeaturedMeals.length > 0) {
+        setFeatureRecipe(transformedFeaturedMeals[0]);
+      }
+    } catch (error) {
+      console.error("Error loading data: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCategoryData = async (category: string) => {
+    try {
+      const meals = await mealApiService.filterByCategory(category);
+      const transformedMeals = meals
+        .map((meal: Meal) => mealApiService.transformMealData(meal))
+        .filter((meal: TransformedMeal | null) => meal !== null);
+      setRecipes(transformedMeals);
+    } catch (error) {
+      console.error("Error loading category data: ", error);
+      setRecipes([]);
+    }
+  };
+
+  const handleCategorySelection = async (category: string) => {
+    setSelectedCategory(category);
+    await loadCategoryData(category);
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    if (selectedCategory) {
+      // Refresh with the currently selected category
+      await loadCategoryData(selectedCategory);
+    } else {
+      // Fallback to loading initial data if no category is selected
+      await loadData();
+    }
+    setRefreshing(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  return (
+    <View style={homeStyles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={homeStyles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+          />
+        }
+      >
+        {/* Animal Icons */}
+        <View style={homeStyles.welcomeSection}>
+          <Image
+            source={require("@/assets/images/lamb.png")}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+          />
+          <Image
+            source={require("@/assets/images/chicken.png")}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+          />
+          <Image
+            source={require("@/assets/images/pork.png")}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+          />
+        </View>
+        {/* Featured section  */}
+        {featureRecipe && (
+          <View style={homeStyles.featuredSection}>
+            <TouchableOpacity
+              style={homeStyles.featuredCard}
+              activeOpacity={0.9}
+              onPress={() => router.push(`/recipe/${featureRecipe}`)}
+            >
+              <View style={homeStyles.featuredImageContainer}>
+                <Image
+                  source={{ uri: featureRecipe.image }}
+                  style={homeStyles.featuredImage}
+                  contentFit="cover"
+                  transition={500}
+                />
+                <View style={homeStyles.featuredOverlay}>
+                  <View style={homeStyles.featuredBadge}>
+                    <Text style={homeStyles.featuredBadgeText}>Featured</Text>
+                  </View>
+                  <View style={homeStyles.featuredContent}>
+                    <Text style={homeStyles.featuredTitle} numberOfLines={2}>
+                      {featureRecipe.title}
+                    </Text>
+                    <View style={homeStyles.featuredMeta}>
+                      <View style={homeStyles.metaItem}>
+                        <Ionicons
+                          name="time-outline"
+                          size={16}
+                          color={COLORS.white}
+                        />
+                        <Text style={homeStyles.metaText}>
+                          {featureRecipe.cookTime}
+                        </Text>
+                      </View>
+                      <View style={homeStyles.metaItem}>
+                        <Ionicons
+                          name="people-outline"
+                          size={16}
+                          color={COLORS.white}
+                        />
+                        <Text style={homeStyles.metaText}>
+                          {featureRecipe.servings}
+                        </Text>
+                      </View>
+                      <View style={homeStyles.metaItem}>
+                        <Ionicons
+                          name="location-outline"
+                          size={16}
+                          color={COLORS.white}
+                        />
+                        <Text style={homeStyles.metaText}>
+                          {featureRecipe.area}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {categories.length > 0 && (
+          <CategoryFilter
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={handleCategorySelection}
+          />
+        )}
+        <View style={homeStyles.recipesSection}>
+          <View style={homeStyles.sectionHeader}>
+            <Text style={homeStyles.sectionTitle}>{selectedCategory}</Text>
+          </View>
+          <FlatList
+            data={recipes}
+            renderItem={({ item }) => <RecipeCard recipe={item} />}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={2}
+            columnWrapperStyle={homeStyles.row}
+            contentContainerStyle={homeStyles.recipesGrid}
+            scrollEnabled={false}
+            ListEmptyComponent={
+              <View style={homeStyles.emptyState}>
+                <Ionicons
+                  name="restaurant-outline"
+                  size={64}
+                  color={COLORS.textLight}
+                />
+                <Text style={homeStyles.emptyTitle}>No recipes found</Text>
+                <Text style={homeStyles.emptyDescription}>
+                  Try a different category.
+                </Text>
+              </View>
+            }
+          />
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+export default HomeScreen;
