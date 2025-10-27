@@ -20,7 +20,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#F3E5F5",
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/new_logo.png",
         "softwareKeyboardLayoutMode": "pan"
       },
       "icon": "./assets/images/icon.png",
@@ -30,7 +30,8 @@
         "backgroundColor": "#F3E5F5"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.joaosilva.dev.funrecipes"
     },
     "web": {
       "output": "static",
