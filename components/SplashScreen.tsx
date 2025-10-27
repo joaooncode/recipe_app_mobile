@@ -156,7 +156,7 @@ export default function SplashScreen({
         {/* Main Logo */}
         <Animated.View style={logoAnimatedStyle}>
           <Image
-            source={require("@/assets/images/new_logo.png")}
+            source={require("@/assets/images/new_logo_2.png")}
             style={{
               width: 200,
               height: 200,
@@ -230,16 +230,6 @@ export default function SplashScreen({
             },
           ]}
         >
-          <Text
-            style={{
-              fontSize: 24,
-              fontWeight: "bold",
-              color: COLORS.primary,
-              textAlign: "center",
-            }}
-          >
-            Fun Recipes
-          </Text>
           <Text
             style={{
               fontSize: 16,

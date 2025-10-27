@@ -1,21 +1,33 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Fun Recipes",
+    "slug": "fun-recipes",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "fun-recipes",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "icon": "./assets/images/icon.png",
+      "splash": {
+        "image": "./assets/images/new_logo.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F3E5F5"
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#F3E5F5",
+        "foregroundImage": "./assets/images/adaptive-icon.png",
         "softwareKeyboardLayoutMode": "pan"
+      },
+      "icon": "./assets/images/icon.png",
+      "splash": {
+        "image": "./assets/images/new_logo.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F3E5F5"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -43,6 +55,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "70026d7c-ce2c-4546-8df5-7e52ce00d738"
+      }
+    },
+    "owner": "joaosilva.dev"
   }
 }
