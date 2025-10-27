@@ -37,12 +37,19 @@ const SignIn = () => {
         password,
       });
       if (signInAttempt.status === "complete") {
+        console.log("Sign in successful, setting active session...");
         await setActive({ session: signInAttempt.createdSessionId });
+        console.log("Session set active, should redirect automatically");
+
+        // Fallback manual redirect in case automatic redirect doesn't work
+        setTimeout(() => {
+          router.replace("/(tabs)");
+        }, 1000);
       } else {
         Alert.alert("Error", "Sign In failed. Please try again.");
         console.error(JSON.stringify(signInAttempt, null, 2));
       }
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert("Error", error.errors?.[0]?.message || "Sign In failed");
       console.error(JSON.stringify(error, null, 2));
     } finally {

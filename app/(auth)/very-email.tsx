@@ -12,7 +12,7 @@ import React, { useState } from "react";
 import { useSignUp } from "@clerk/clerk-expo";
 import { authStyles } from "@/assets/styles/auth.styles";
 import { Image } from "expo-image";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 
 interface VerifyEmailProps {
   email: string;
@@ -21,6 +21,7 @@ interface VerifyEmailProps {
 
 const VerifyEmail = ({ email, onBack }: VerifyEmailProps) => {
   const { isLoaded, signUp, setActive } = useSignUp();
+  const router = useRouter();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -37,8 +38,14 @@ const VerifyEmail = ({ email, onBack }: VerifyEmailProps) => {
         await setActive({
           session: signUpAttempt.createdSessionId,
         });
-        // Navigate to home screen after successful verification
-        router.replace("/(tabs)");
+        console.log(
+          "Email verification successful, should redirect automatically"
+        );
+
+        // Fallback manual redirect in case automatic redirect doesn't work
+        setTimeout(() => {
+          router.replace("/(tabs)");
+        }, 1000);
       } else {
         Alert.alert("Error", "Verification  failed. Try again later");
         console.error(JSON.stringify(signUpAttempt, null, 2));
