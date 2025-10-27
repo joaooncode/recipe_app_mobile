@@ -1,21 +1,27 @@
 import { useRouter } from "expo-router";
 import { useAuth } from "@clerk/clerk-expo";
-import { View, Text } from "react-native";
-import { COLORS } from "@/constants/color";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import SplashScreen from "@/components/SplashScreen";
 
 export default function Index() {
   const { isSignedIn, isLoaded } = useAuth();
   const router = useRouter();
+  const [splashComplete, setSplashComplete] = useState(false);
+
+  const handleSplashComplete = () => {
+    setSplashComplete(true);
+  };
 
   useEffect(() => {
     console.log(
       "Auth state changed - isLoaded:",
       isLoaded,
       "isSignedIn:",
-      isSignedIn
+      isSignedIn,
+      "splashComplete:",
+      splashComplete
     );
-    if (isLoaded) {
+    if (isLoaded && splashComplete) {
       if (isSignedIn) {
         console.log("User is signed in, redirecting to tabs...");
         router.replace("/(tabs)");
@@ -24,35 +30,13 @@ export default function Index() {
         router.replace("/(auth)/sign-in");
       }
     }
-  }, [isLoaded, isSignedIn, router]);
+  }, [isLoaded, isSignedIn, splashComplete, router]);
 
-  // Show loading screen while Clerk is loading
-  if (!isLoaded) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: COLORS.background,
-        }}
-      >
-        <Text>Loading...</Text>
-      </View>
-    );
+  // Show splash screen while loading or before splash animation completes
+  if (!isLoaded || !splashComplete) {
+    return <SplashScreen onAnimationComplete={handleSplashComplete} />;
   }
 
-  // Show loading while redirecting
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: COLORS.background,
-      }}
-    >
-      <Text>Redirecting...</Text>
-    </View>
-  );
+  // This should not be reached as we redirect in useEffect
+  return null;
 }
