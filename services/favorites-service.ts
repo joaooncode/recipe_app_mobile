@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import apiClient from "./api-client";
 
 // Type definitions
 interface TransformedMeal {
@@ -15,20 +15,59 @@ interface TransformedMeal {
   originalData: any;
 }
 
+interface BackendFavorite {
+  id: string;
+  userId: string;
+  recipeId: number;
+  title: string;
+  image?: string;
+  cookTime?: string;
+  servings?: string;
+  createdAt: string;
+}
+
+// Transform mobile recipe format to backend format
+const transformToBackendFormat = (recipe: TransformedMeal) => ({
+  userId: "", // Will be set when calling the API
+  recipeId: parseInt(recipe.id),
+  title: recipe.title,
+  image: recipe.image,
+  cookTime: recipe.cookTime,
+  servings: recipe.servings.toString(),
+});
+
+// Transform backend format to mobile recipe format
+const transformFromBackendFormat = (
+  backendFavorite: BackendFavorite
+): TransformedMeal => ({
+  id: backendFavorite.recipeId.toString(),
+  title: backendFavorite.title,
+  description: "", // Not stored in backend, will be empty
+  image: backendFavorite.image || "",
+  cookTime: backendFavorite.cookTime || "30 minutes",
+  servings: parseInt(backendFavorite.servings || "4"),
+  category: "", // Not stored in backend
+  area: "", // Not stored in backend
+  ingredients: [], // Not stored in backend
+  instructions: [], // Not stored in backend
+  originalData: {}, // Not stored in backend
+});
+
 export const favoritesService = {
   // Get all favorites for a user
   getFavorites: async (userId: string): Promise<TransformedMeal[]> => {
     try {
-      const key = `@favorites_${userId}`;
-      const favoritesJson = await AsyncStorage.getItem(key);
+      const response = await apiClient.get(`/api/favorites/${userId}`);
 
-      if (favoritesJson) {
-        return JSON.parse(favoritesJson);
+      if (response.status === 404) {
+        return [];
       }
-      return [];
+
+      const backendFavorites: BackendFavorite[] = response.data;
+      return backendFavorites.map(transformFromBackendFormat);
     } catch (error) {
-      console.error("Error getting favorites:", error);
-      return [];
+      console.error("Error fetching favorites from backend:", error);
+      throw new Error("Failed to fetch favorites");
     }
   },
 
@@ -38,24 +77,19 @@ export const favoritesService = {
     recipe: TransformedMeal
   ): Promise<boolean> => {
     try {
-      const key = `@favorites_${userId}`;
-      const existingFavorites = await favoritesService.getFavorites(userId);
+      const backendFormat = transformToBackendFormat(recipe);
+      backendFormat.userId = userId;
 
-      // Check if recipe is already favorited
-      const isAlreadyFavorited = existingFavorites.some(
-        (fav) => fav.id === recipe.id
-      );
+      const response = await apiClient.post("/api/favorites", backendFormat);
 
-      if (isAlreadyFavorited) {
-        return false; // Already favorited
+      if (response.status === 201) {
+        return true;
       }
 
-      const updatedFavorites = [...existingFavorites, recipe];
-      await AsyncStorage.setItem(key, JSON.stringify(updatedFavorites));
-      return true;
-    } catch (error) {
-      console.error("Error adding favorite:", error);
       return false;
+    } catch (error) {
+      console.error("Error adding favorite to backend:", error);
+      throw new Error("Failed to add favorite");
     }
   },
 
@@ -65,18 +99,18 @@ export const favoritesService = {
     recipeId: string
   ): Promise<boolean> => {
     try {
-      const key = `@favorites_${userId}`;
-      const existingFavorites = await favoritesService.getFavorites(userId);
-
-      const updatedFavorites = existingFavorites.filter(
-        (fav) => fav.id !== recipeId
+      const response = await apiClient.delete(
+        `/api/favorites/${userId}/${recipeId}`
       );
 
-      await AsyncStorage.setItem(key, JSON.stringify(updatedFavorites));
-      return true;
-    } catch (error) {
-      console.error("Error removing favorite:", error);
+      if (response.status === 200) {
+        return true;
+      }
+
       return false;
+    } catch (error) {
+      console.error("Error removing favorite from backend:", error);
+      throw new Error("Failed to remove favorite");
     }
   },
 

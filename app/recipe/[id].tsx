@@ -12,7 +12,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { mealApiService } from "@/services/meal-api";
-import { favoritesService } from "@/services/favorites-service";
+import { useFavorites } from "@/hooks/useFavorites";
 import { recipeDetailStyles } from "@/assets/styles/recipe-detail.styles";
 import { COLORS } from "@/constants/color";
 import SafeScreen from "@/components/SafeScreen";
@@ -47,10 +47,10 @@ const RecipeDetailScreen = () => {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { user } = useUser();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const [recipe, setRecipe] = useState<TransformedMeal | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(false);
 
   const loadRecipe = async () => {
@@ -67,11 +67,8 @@ const RecipeDetailScreen = () => {
 
           // Check if recipe is favorited
           if (user?.id) {
-            const favorited = await favoritesService.isFavorite(
-              user.id,
-              transformedMeal.id
-            );
-            setIsFavorited(favorited);
+            const favorited = isFavorite(transformedMeal.id);
+            // Note: isFavorite is now a function from the hook, no need to await
           }
         }
       }
@@ -88,11 +85,9 @@ const RecipeDetailScreen = () => {
 
     try {
       setFavoriteLoading(true);
-      const success = await favoritesService.toggleFavorite(user.id, recipe);
+      const success = await toggleFavorite(recipe);
 
-      if (success) {
-        setIsFavorited(!isFavorited);
-      } else {
+      if (!success) {
         Alert.alert("Error", "Failed to update favorite");
       }
     } catch (error) {
@@ -185,9 +180,15 @@ const RecipeDetailScreen = () => {
                 <ActivityIndicator size="small" color={COLORS.white} />
               ) : (
                 <Ionicons
-                  name={isFavorited ? "heart" : "heart-outline"}
+                  name={
+                    recipe && isFavorite(recipe.id) ? "heart" : "heart-outline"
+                  }
                   size={24}
-                  color={isFavorited ? COLORS.primary : COLORS.white}
+                  color={
+                    recipe && isFavorite(recipe.id)
+                      ? COLORS.primary
+                      : COLORS.white
+                  }
                 />
               )}
             </TouchableOpacity>

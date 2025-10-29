@@ -61,7 +61,8 @@
       "router": {},
       "eas": {
         "projectId": "70026d7c-ce2c-4546-8df5-7e52ce00d738"
-      }
+      },
+      "apiUrl": "https://recipe-app-backend-okyr.onrender.com"
     },
     "owner": "joaosilva.dev"
   }

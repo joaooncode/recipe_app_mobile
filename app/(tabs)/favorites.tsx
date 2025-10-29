@@ -6,51 +6,19 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
-import React, { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-expo";
+import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { favoritesService } from "@/services/favorites-service";
+import { useFavorites } from "@/hooks/useFavorites";
 import { favoritesStyles } from "@/assets/styles/favorites.styles";
 import { COLORS } from "@/constants/color";
 import RecipeCard from "@/components/recipe-card";
 import SafeScreen from "@/components/SafeScreen";
 
-// Type definitions
-interface TransformedMeal {
-  id: string;
-  title: string;
-  description: string;
-  image: string;
-  cookTime: string;
-  servings: number;
-  category: string;
-  area: string;
-  ingredients: string[];
-  instructions: string[];
-  originalData: any;
-}
-
 const FavoritesScreen = () => {
-  const { user } = useUser();
   const router = useRouter();
-
-  const [favorites, setFavorites] = useState<TransformedMeal[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { favorites, loading, loadFavorites } = useFavorites();
   const [refreshing, setRefreshing] = useState(false);
-
-  const loadFavorites = async () => {
-    if (!user?.id) return;
-
-    try {
-      const userFavorites = await favoritesService.getFavorites(user.id);
-      setFavorites(userFavorites);
-    } catch (error) {
-      console.error("Error loading favorites:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -61,10 +29,6 @@ const FavoritesScreen = () => {
   const handleExploreRecipes = () => {
     router.push("/(tabs)");
   };
-
-  useEffect(() => {
-    loadFavorites();
-  }, [user?.id]);
 
   const renderEmptyState = () => (
     <View style={favoritesStyles.emptyState}>
